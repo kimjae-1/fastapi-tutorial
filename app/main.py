@@ -19,7 +19,7 @@ def create_app() -> FastAPI:
 
     app.include_router(router)
     app.add_exception_handler(BaseAPIException, api_error_handler)
-    app.add_exception_handler(BaseAuthExeption, api_auth_error_handler)
+    app.add_exception_handler(BaseAuthException, api_auth_error_handler)
 
     app.add_middleware(
         CORSMiddleware,
