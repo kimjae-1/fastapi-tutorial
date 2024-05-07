@@ -1,22 +1,40 @@
-# tests/conftest.py
+import pytest
+from unittest.mock import AsyncMock
 
-import pytest_asyncio
+from httpx import AsyncClient
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from app.main import create_app
+from app.core.container import Container
+from app.services import UserService, ClassService
+from app.repositories import UserRepository, ClassRepository
 
 
-@pytest_asyncio.fixture
-async def async_engine():
-    engine = create_async_engine(url="postgresql+asyncpg://postgres:postgres@localhost:5432/postgres")
+@pytest.fixture
+def container() -> Container:
+    return Container()
 
-    yield engine
 
-    await engine.dispose()
+@pytest.fixture
+def async_client(container) -> AsyncClient:
+    app = create_app(container)
+    return AsyncClient(app=app, base_url="http://test")
 
-@pytest_asyncio.fixture
-async def async_session(async_engine): # `async_engine`이라는 매개변수 이름을 사용하면 위의 `async def async_engine` 으로 정의한 fixture가 자동으로 주입됩니다.
-    session = AsyncSession(bind=async_engine)
 
-    yield session
-    
-    await session.close()
+@pytest.fixture
+def user_repository_mock():
+    return AsyncMock(spec=UserRepository)
+
+
+@pytest.fixture
+def class_repository_mock():
+    return AsyncMock(spec=ClassRepository)
+
+
+@pytest.fixture
+def user_service_mock(user_repository_mock):
+    return UserService(user_repository=user_repository_mock)
+
+
+@pytest.fixture
+def class_service_mock(class_repository_mock):
+    return ClassService(class_repository=class_repository_mock)
